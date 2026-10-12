@@ -184,8 +184,10 @@ SameSite and secure in production. JWT sessions expire after one day; logout cle
 the browser cookie but does not revoke a copied token. Rate limits use an in-process
 store, so shared limits need an external store when running multiple instances.
 
-The included `resort-booking/netlify.toml` serves React routes through `index.html`
+The repository-root `netlify.toml` builds the frontend from `resort-booking`, serves React routes through `index.html`,
 and proxies `/api/*` to `https://resort-booking-49y5.onrender.com`. When deploying
-the frontend to Netlify, use `resort-booking` as the base directory, `npm run build`
-as the build command, and `dist` as the publish directory. Set Render's `CLIENT_URL`
+the frontend to Netlify. The build command and publish directory are already configured
+in that file. Set Render's `CLIENT_URL`
 to the exact Netlify site origin without a trailing slash.
+The same routing rules are included in `resort-booking/public/_redirects`, which
+Vite copies into `dist` so Netlify can apply them from the deployed artifact.
