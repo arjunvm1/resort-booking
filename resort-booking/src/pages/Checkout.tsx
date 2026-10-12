@@ -9,8 +9,10 @@ import type { ApiRoom } from "../lib/api"
 
 export function Checkout({ stay }: { stay: Stay }) {
   const { id } = useParams()
-  const [liveRoom, setLiveRoom] = useState<ApiRoom | null>(null)
+  const availabilityKey = `${id}:${stay.checkin}:${stay.checkout}:${stay.adults}:${stay.children}`
+  const [availabilityResult, setAvailabilityResult] = useState<{ key: string; room: ApiRoom | null } | null>(null)
   const { rooms, loading: loadingRoom, error: roomError } = useRooms(id)
+  const liveRoom = availabilityResult?.key === availabilityKey ? availabilityResult.room : null
   const room = liveRoom || rooms.find((r) => r.id === id)
   const [step, setStep] = useState(1)
   const [accepted, setAccepted] = useState(false)
@@ -21,13 +23,12 @@ export function Checkout({ stay }: { stay: Stay }) {
   const [error, setError] = useState("")
   useEffect(() => {
     let active = true
-    setLiveRoom(null)
     void availability(stay)
       .then((data) => {
         if (!active) return
         const available = data.rooms.find((r) => r.id === id)
-        setLiveRoom(available || null)
-        setError(available ? "" : "This room is unavailable for your selected stay.")
+        setAvailabilityResult({ key: availabilityKey, room: available || null })
+        setError(available ? "" : "The property is unavailable for your selected stay.")
       })
       .catch((error) => {
         if (active) setError(error.message)
@@ -35,7 +36,7 @@ export function Checkout({ stay }: { stay: Stay }) {
     return () => {
       active = false
     }
-  }, [id, stay])
+  }, [id, stay, availabilityKey])
   const reserve = async () => {
     if (!room || !liveRoom) return
     setBusy(true)
@@ -70,7 +71,7 @@ export function Checkout({ stay }: { stay: Stay }) {
   if (loadingRoom)
     return (
       <main className="section page">
-        <p role="status">Loading room...</p>
+        <p role="status">Loading property...</p>
       </main>
     )
   if (!room)
@@ -81,9 +82,9 @@ export function Checkout({ stay }: { stay: Stay }) {
           className="error"
           role="alert"
         >
-          {roomError || "This room could not be found."}
+          {roomError || "This property could not be found."}
         </p>
-        <Link to="/stay">Explore our rooms</Link>
+        <Link to="/stay">View the property</Link>
       </main>
     )
   return (
@@ -219,7 +220,7 @@ export function Checkout({ stay }: { stay: Stay }) {
                 A secure start to <em>your stay.</em>
               </h2>
               <p>
-                Your rooms are held for 15 minutes. Complete payment in Razorpay Checkout to confirm
+                The property is held for 15 minutes. Complete payment in Razorpay Checkout to confirm
                 your reservation. Reference: {booking?.reference}
               </p>
               {payment === "processing" ? (
@@ -259,7 +260,7 @@ export function Checkout({ stay }: { stay: Stay }) {
                   ? "Payment verified. Your reservation is confirmed."
                   : booking?.refundRequired
                     ? "Your payment requires staff review. Please contact the resort."
-                    : "Your reservation is saved. Complete payment before the room hold expires to confirm your stay."}
+                    : "Your reservation is saved. Complete payment before the property hold expires to confirm your stay."}
               </p>
               <div className="notice">
                 <strong>{booking?.reference}</strong>

@@ -57,8 +57,9 @@ export function App() {
           path="/admin"
           element={<Admin />}
         />
-        <Route path="/admin/rooms" element={<Admin section="Rooms" />} />
-        <Route path="/admin/rooms/new" element={<Admin section="Add room" />} />
+        <Route path="/admin/rooms" element={<Admin section="Property" />} />
+        <Route path="/admin/rooms/new" element={<Admin section="Add property" />} />
+        <Route path="/admin/rooms/:id/edit" element={<Admin section="Edit property" />} />
         <Route path="/admin/bookings" element={<Admin section="Bookings" />} />
         <Route
           path="/policy/:type"

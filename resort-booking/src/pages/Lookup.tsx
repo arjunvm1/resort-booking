@@ -84,7 +84,7 @@ export function Lookup() {
             room={room}
             stay={result.stay}
             quote={result}
-          /> : <p>Room: {result.room}</p>}
+          /> : <p>Property: {result.room}</p>}
           <button
             className="button secondary"
             disabled={busy || result.status === "Cancelled"}

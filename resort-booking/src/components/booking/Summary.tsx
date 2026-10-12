@@ -9,7 +9,7 @@ export function Summary({ room, stay, quote }: { room: ApiRoom; stay: Stay; quot
     1,
     Math.round((Date.parse(stay.checkout) - Date.parse(stay.checkin)) / 86400000),
   )
-  const subtotal = nights * room.price * stay.quantity
+  const subtotal = nights * room.price
   return (
     <div className="summary">
       <img
@@ -21,12 +21,12 @@ export function Summary({ room, stay, quote }: { room: ApiRoom; stay: Stay; quot
         {date(stay.checkin)} — {date(stay.checkout)}
       </p>
       <p>
-        {nights} nights · {stay.adults} adults · {stay.children} children · {stay.quantity} rooms
+        {nights} nights · {stay.adults} adults · {stay.children} children · Entire property
       </p>
       <hr />
       <div>
         <span>
-          {money(quote?.nightlyRate ?? room.price)} × {nights} nights × {stay.quantity}
+          {money(quote?.nightlyRate ?? room.price)} × {nights} nights
         </span>
         <span>{money(quote ? quote.subtotal / 100 : subtotal)}</span>
       </div>

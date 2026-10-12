@@ -6,7 +6,7 @@ import { ApiError } from "../utils/errors.js"
 export const hashToken = (token) => createHash("sha256").update(token).digest("hex")
 export function quote(room, stay, taxPercent) {
   const nights = (Date.parse(stay.checkout) - Date.parse(stay.checkin)) / 86400000
-  const subtotal = Math.round(room.price * 100) * nights * stay.quantity
+  const subtotal = Math.round(room.price * 100) * nights
   const tax = Math.round((subtotal * taxPercent) / 100)
   return { nights, subtotal, tax, amount: subtotal + tax, nightlyRate: room.price, currency: "INR" }
 }
@@ -25,7 +25,6 @@ export function availableInventory(room, stay, bookings) {
 
 export async function availability(room, stay, session, exclude) {
   const filter = {
-    room: room.id,
     "stay.checkin": { $lt: stay.checkout },
     "stay.checkout": { $gt: stay.checkin },
     $or: [
@@ -68,11 +67,12 @@ export async function createReservation(input, env, user) {
       { $inc: { revision: 1 } },
       { returnDocument: 'after', session },
     )
-    if (!room) throw new ApiError(404, "Room type not found")
-    if (input.stay.adults + input.stay.children > room.guests * input.stay.quantity)
-      throw new ApiError(400, "Guest count exceeds room capacity")
-    if ((await availability(room, input.stay, session)) < input.stay.quantity)
-      throw new ApiError(409, "Not enough rooms available for these dates")
+    if (!room) throw new ApiError(404, "Property not found")
+    if (input.stay.adults + input.stay.children > room.guests)
+      throw new ApiError(400, "Guest count exceeds property capacity")
+    input.stay.quantity = 1
+    if ((await availability({ ...room.toObject(), inventory: 1 }, input.stay, session)) < 1)
+      throw new ApiError(409, "The property is unavailable for these dates")
     const [booking] = await Booking.create(
       [
         {
@@ -143,7 +143,7 @@ export async function confirmCapturedPayment(payment) {
     booking.paymentId = payment.id
     const hasInventory =
       room &&
-      (await availability(room, booking.stay, session, booking._id)) >= booking.stay.quantity
+      (await availability({ ...room.toObject(), inventory: 1 }, booking.stay, session, booking._id)) >= 1
     if (
       booking.status !== "Cancelled" &&
       hasInventory &&

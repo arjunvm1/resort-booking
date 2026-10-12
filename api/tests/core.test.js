@@ -81,7 +81,10 @@ test("quotes use integer paise and server-provided rates", () => {
     currency: "INR",
   })
 })
-test("inventory counts concurrent nightly usage, not unrelated nights together", () => {
+test('whole-property pricing ignores legacy room quantity', () => {
+  assert.equal(quote({ price: 8500 }, { ...stay, quantity: 3 }, 12).amount, 1904000)
+})
+test("availability helper still counts legacy reservations by night", () => {
   const bookings = [
     { stay: { checkin: "2099-11-12", checkout: "2099-11-13", quantity: 2 } },
     { stay: { checkin: "2099-11-13", checkout: "2099-11-14", quantity: 2 } },

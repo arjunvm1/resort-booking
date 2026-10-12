@@ -15,7 +15,7 @@ export function RoomForm({ room, onSaved }: { room?: ApiRoom; onSaved: () => voi
   const handleImageSubmit = async () => {
     setError("")
     if (!files.length) { setError("Choose photos to upload."); return }
-    if (files.length + imageUrls.length > 6) { setError("You can upload up to six photos per room."); return }
+    if (files.length + imageUrls.length > 6) { setError("You can upload up to six property photos."); return }
     try { files.forEach(validateRoomPhoto) }
     catch (error) { setError(error instanceof Error ? error.message : "Invalid photos."); return }
     setUploading(true)
@@ -46,17 +46,16 @@ export function RoomForm({ room, onSaved }: { room?: ApiRoom; onSaved: () => voi
           price: Number(data.get("price")),
           guests: Number(data.get("guests")),
           size: Number(data.get("size")),
-          inventory: Number(data.get("inventory")),
           pool: data.get("pool") === "on",
           active: data.get("active") === "on",
-          ...(!room ? { id: normalizeRoomId(String(data.get("id"))).replace(/-$/, '') } : {}),
+          ...(!room ? { id: normalizeRoomId(String(data.get("id"))).replace(/-$/, ''), inventory: 1 } : {}),
         }
         setSaving(true)
         setError("")
         try {
-          if (!room && !/^[a-z0-9-]{1,60}$/.test(input.id ?? '')) throw new Error('Enter a room ID containing letters or numbers, such as ocean-view-suite.')
-          if (files.length) throw new Error("Upload your selected photos before saving the room.")
-          if (!imageUrls.length) throw new Error("Upload at least one room photo.")
+          if (!room && !/^[a-z0-9-]{1,60}$/.test(input.id ?? '')) throw new Error('Enter a property ID containing letters or numbers, such as vana-resort.')
+          if (files.length) throw new Error("Upload your selected photos before saving the property.")
+          if (!imageUrls.length) throw new Error("Upload at least one property photo.")
           await api(room ? `/admin/rooms/${room.id}` : "/admin/rooms", {
             method: room ? "PATCH" : "POST",
             body: JSON.stringify(input),
@@ -68,26 +67,26 @@ export function RoomForm({ room, onSaved }: { room?: ApiRoom; onSaved: () => voi
           }
           onSaved()
         } catch (error) {
-          setError(error instanceof Error ? error.message : "Could not save room.")
+          setError(error instanceof Error ? error.message : "Could not save property.")
         } finally {
           setSaving(false)
         }
       }}
     >
-      <h3>{room ? room.name : "Add a room type"}</h3>
+      <h3>{room ? room.name : "Add property"}</h3>
       <fieldset
         disabled={saving || uploading}
         style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
       >
         {!room && (
           <label>
-            Room ID
+            Property ID
             <input
               name="id"
               required
               pattern="[a-z0-9-]{1,60}"
               maxLength={60}
-              placeholder="e.g. ocean-view-suite"
+              placeholder="e.g. vana-resort"
               onChange={e => { e.target.value = normalizeRoomId(e.target.value) }}
               onBlur={e => { e.target.value = normalizeRoomId(e.target.value).replace(/-$/, '') }}
             />
@@ -95,7 +94,7 @@ export function RoomForm({ room, onSaved }: { room?: ApiRoom; onSaved: () => voi
           </label>
         )}
         <label>
-          Room name
+            Property name
           <input
             name="name"
             required
@@ -122,12 +121,12 @@ export function RoomForm({ room, onSaved }: { room?: ApiRoom; onSaved: () => voi
           />
         </label>
         <label>
-          Room photos
+          Property photos
           <input ref={fileInput} name="images" type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={e => {
             setError('')
             const selected = Array.from(e.target.files ?? [])
             try {
-              if (selected.length + imageUrls.length > 6) throw new Error('You can upload up to six photos per room.')
+              if (selected.length + imageUrls.length > 6) throw new Error('You can upload up to six property photos.')
               selected.forEach(validateRoomPhoto)
               setFiles(selected)
             } catch (error) {
@@ -143,7 +142,7 @@ export function RoomForm({ room, onSaved }: { room?: ApiRoom; onSaved: () => voi
         </button>
         <div className="room-image-editor">
           {imageUrls.map((url, index) => <div key={url}>
-            <img src={url} alt={`Room photo ${index + 1}`} />
+            <img src={url} alt={`Property photo ${index + 1}`} />
             <span>{index === 0 ? 'Cover photo' : `Photo ${index + 1}`}</span>
             <button type="button" className="text-link" onClick={() => setImageUrls(previous => previous.filter((_, i) => i !== index))}>Remove photo {index + 1}</button>
           </div>)}
@@ -161,7 +160,7 @@ export function RoomForm({ room, onSaved }: { room?: ApiRoom; onSaved: () => voi
           />
         </label>
         <label>
-          Maximum guests per room
+          Maximum guests
           <input
             name="guests"
             type="number"
@@ -173,7 +172,7 @@ export function RoomForm({ room, onSaved }: { room?: ApiRoom; onSaved: () => voi
           />
         </label>
         <label>
-          Room size (m²)
+          Property size (m²)
           <input
             name="size"
             type="number"
@@ -182,18 +181,6 @@ export function RoomForm({ room, onSaved }: { room?: ApiRoom; onSaved: () => voi
             step="any"
             required
             defaultValue={room?.size}
-          />
-        </label>
-        <label>
-          Room inventory
-          <input
-            name="inventory"
-            type="number"
-            min="0"
-            max="1000"
-            step="1"
-            required
-            defaultValue={room?.inventory ?? 1}
           />
         </label>
         <label className="checkbox">
@@ -220,7 +207,7 @@ export function RoomForm({ room, onSaved }: { room?: ApiRoom; onSaved: () => voi
             {error}
           </p>
         )}
-        <button className="button">{saving ? "Saving..." : room ? "Save room" : "Add room"}</button>
+        <button className="button">{saving ? "Saving..." : room ? "Save property" : "Add property"}</button>
       </fieldset>
     </form>
   )

@@ -19,7 +19,7 @@ export function Listing({ stay, setStay }: { stay: Stay; setStay: (s: Stay) => v
   const visible = (searched ? availableRooms : rooms)
     .filter(
       (r) =>
-        (filter !== "pool" || r.pool) && r.guests * stay.quantity >= stay.adults + stay.children,
+        (filter !== "pool" || r.pool) && r.guests >= stay.adults + stay.children,
     )
     .sort((a, b) => (sort === "high" ? b.price - a.price : a.price - b.price))
   return (
@@ -56,15 +56,15 @@ export function Listing({ stay, setStay }: { stay: Stay; setStay: (s: Stay) => v
             : "Explore our stays"}
         </span>
         <select
-          aria-label="Room filter"
+          aria-label="Property filter"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         >
-          <option value="all">All room types</option>
+          <option value="all">Entire property</option>
           <option value="pool">Private pool</option>
         </select>
         <select
-          aria-label="Sort rooms"
+          aria-label="Sort properties"
           value={sort}
           onChange={(e) => setSort(e.target.value)}
         >
@@ -102,13 +102,13 @@ export function Listing({ stay, setStay }: { stay: Stay; setStay: (s: Stay) => v
       ) : (
         <div className="empty">
           <Leaf />
-          <h3>A little more room is needed.</h3>
-          <p>Increase your room quantity or adjust the guest count to find a matching stay.</p>
+          <h3>The property cannot host this guest count.</h3>
+          <p>Adjust the number of guests to check availability.</p>
           <button
             className="button"
-            onClick={() => setStay({ ...stay, quantity: 3 })}
+            onClick={() => setStay({ ...stay, adults: 2, children: 0, quantity: 1 })}
           >
-            Explore three rooms
+            Reset guest count
           </button>
         </div>
       )}

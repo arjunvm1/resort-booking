@@ -37,13 +37,23 @@ export function adminRoutes(env) {
     res.json({ booking: await cancelReservation(req.params.reference) })
   })
   router.get('/rooms', async (req, res) => res.json({ rooms: (await Room.find().sort({ price: 1 })).map(publicRoom) }))
-  router.post('/rooms', async (req, res) => res.status(201).json({ room: publicRoom(await Room.create(roomSchema.parse(req.body))) }))
+  router.post('/rooms', async (req, res) => {
+    const input = roomSchema.parse({ ...req.body, inventory: 1 })
+    let result
+    await mongoose.connection.transaction(async session => {
+      if (input.active) await Room.updateMany({ active: true }, { $set: { active: false } }, { session })
+      const [property] = await Room.create([input], { session })
+      result = publicRoom(property)
+    })
+    res.status(201).json({ room: result })
+  })
   router.patch('/rooms/:id', async (req, res) => {
     const input = roomSchema.omit({ id: true }).partial().parse(req.body)
     let result
     await mongoose.connection.transaction(async session => {
       const room = await Room.findOneAndUpdate({ id: req.params.id }, { $inc: { revision: 1 } }, { returnDocument: 'after', session })
-      if (!room) throw new ApiError(404, 'Room type not found')
+      if (!room) throw new ApiError(404, 'Property not found')
+      if (input.active) await Room.updateMany({ _id: { $ne: room._id }, active: true }, { $set: { active: false } }, { session })
       if (input.inventory !== undefined && input.inventory < room.inventory) {
         const allocated = await Booking.exists({ room: room.id, 'stay.checkout': { $gt: today() }, $or: [{ status: 'Confirmed' }, { status: 'Pending confirmation', expiresAt: { $gt: new Date() } }] }).session(session)
         if (allocated) throw new ApiError(409, 'Inventory cannot be reduced while future reservations or holds exist')
@@ -53,6 +63,19 @@ export function adminRoutes(env) {
       result = publicRoom(room)
     })
     res.json({ room: result })
+  })
+  router.delete('/rooms/:id', async (req, res) => {
+    let deleted
+    await mongoose.connection.transaction(async session => {
+      const room = await Room.findOne({ id: req.params.id }).session(session)
+      if (!room) throw new ApiError(404, 'Property not found')
+      if (await Booking.exists({ room: room.id }).session(session)) {
+        throw new ApiError(409, 'This property has booking history and cannot be deleted. Mark it inactive instead.')
+      }
+      await room.deleteOne({ session })
+      deleted = room.id
+    })
+    res.json({ deleted })
   })
   return router
 }

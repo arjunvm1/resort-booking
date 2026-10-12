@@ -13,13 +13,13 @@ export function Detail({ stay, setStay }: { stay: Stay; setStay: (s: Stay) => vo
   const room = rooms.find((r) => r.id === id)
   const go = useNavigate()
   const [error, setError] = useState("")
-  if (loading) return <main className="section page"><p role="status">Loading room...</p></main>
+  if (loading) return <main className="section page"><p role="status">Loading property...</p></main>
   if (!room)
     return (
       <main className="section page">
         <h1>Stay not found.</h1>
         {loadError && <p className="error" role="alert">{loadError}</p>}
-        <Link to="/stay">Explore our rooms</Link>
+        <Link to="/stay">View the property</Link>
       </main>
     )
   return (
@@ -84,8 +84,8 @@ export function Detail({ stay, setStay }: { stay: Stay; setStay: (s: Stay) => vo
             stay={stay}
             setStay={setStay}
             onSearch={() => {
-              if (stay.adults + stay.children > room.guests * stay.quantity) {
-                setError("Increase the room quantity for this guest count.")
+              if (stay.adults + stay.children > room.guests) {
+                setError("This guest count exceeds the property capacity.")
                 return
               }
               go(`/booking/${room.id}`)

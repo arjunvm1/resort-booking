@@ -10,7 +10,7 @@ export function useRooms(id?: string) {
       ? api<{ room: ApiRoom }>(`/rooms/${encodeURIComponent(id)}`).then(data => [data.room])
       : api<{ rooms: ApiRoom[] }>('/rooms').then(data => data.rooms)
     void request.then(rooms => { if (active) setResult({ id, rooms, error: '' }) })
-      .catch(error => { if (active) setResult({ id, rooms: [], error: error instanceof Error ? error.message : 'Could not load rooms.' }) })
+      .catch(error => { if (active) setResult({ id, rooms: [], error: error instanceof Error ? error.message : 'Could not load the property.' }) })
     return () => { active = false }
   }, [id])
   const current = result?.id === id ? result : null

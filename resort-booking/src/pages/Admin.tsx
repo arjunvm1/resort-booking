@@ -1,10 +1,10 @@
 import { Link, useNavigate } from "react-router-dom"
 import { AddRoom } from "./AddRoom"
+import { EditProperty } from './EditProperty'
 import { useEffect, useState } from "react"
 import { api, ApiError } from "../lib/api"
 import type { ApiRoom, User } from "../lib/api"
 import type { Booking } from "../types/booking"
-import { RoomForm } from "../components/rooms/RoomForm"
 import { money, date } from "../utils/format"
 
 type Overview = {
@@ -14,7 +14,7 @@ type Overview = {
   refunds: number
   revenue: number
 }
-export function Admin({ section = 'Overview' }: { section?: 'Overview' | 'Rooms' | 'Add room' | 'Bookings' }) {
+export function Admin({ section = 'Overview' }: { section?: 'Overview' | 'Property' | 'Add property' | 'Edit property' | 'Bookings' }) {
   const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
   const [checking, setChecking] = useState(true)
@@ -56,11 +56,11 @@ export function Admin({ section = 'Overview' }: { section?: 'Overview' | 'Rooms'
       setBusy(true)
       setError('')
       try {
-        if (tab === 'Add room') return
+        if (tab === 'Add property' || tab === 'Edit property') return
         if (tab === "Overview") {
           const data = await api<Overview>("/admin/overview")
           if (active) setOverview(data)
-        } else if (tab === "Rooms") {
+        } else if (tab === "Property") {
           const data = await api<{ rooms: ApiRoom[] }>("/admin/rooms")
           if (active) setRooms(data.rooms)
         } else {
@@ -183,8 +183,8 @@ export function Admin({ section = 'Overview' }: { section?: 'Overview' | 'Rooms'
       <aside className="sidebar">
         <div className="eyebrow">RESORT OPERATIONS</div>
         {([
-          ['Overview', '/admin'], ['Rooms', '/admin/rooms'],
-          ['Add room', '/admin/rooms/new'], ['Bookings', '/admin/bookings'],
+          ['Overview', '/admin'], ['Property', '/admin/rooms'],
+          ['Add property', '/admin/rooms/new'], ['Bookings', '/admin/bookings'],
         ] as const).map(([name, path]) => <Link key={name} to={path} className={tab === name ? 'selected' : ''} aria-current={tab === name ? 'page' : undefined} onClick={() => setNotice('')}>{name}</Link>)}
         <Link to="/">View website</Link>
         <button
@@ -232,27 +232,42 @@ export function Admin({ section = 'Overview' }: { section?: 'Overview' | 'Rooms'
             ))}
           </div>
         )}
-        {tab === 'Add room' && <AddRoom onSaved={() => {
-          setNotice('Room added.')
+        {tab === 'Add property' && <AddRoom onSaved={() => {
+          setNotice('Property added.')
           setRevision(v => v + 1)
           navigate('/admin/rooms')
         }} />}
-        {tab === "Rooms" && (
+        {tab === 'Edit property' && <EditProperty />}
+        {tab === "Property" && (
           <>
-            <Link className="button" to="/admin/rooms/new" onClick={() => setNotice('')}>Add room</Link>
-            <p>Manage the details and availability of your existing rooms.</p>
-            {!busy && rooms.length === 0 && <p>No room types yet. Use Add room to create your first room.</p>}
-            {!busy &&
-              rooms.map((room) => (
-                <RoomForm
-                  key={`${room.id}-${revision}`}
-                  room={room}
-                  onSaved={() => {
-                    setNotice("Room details saved.")
-                    setRevision((v) => v + 1)
-                  }}
-                />
-              ))}
+            <Link className="button" to="/admin/rooms/new" onClick={() => setNotice('')}>Add property</Link>
+            <p>Manage the details, nightly rate, capacity, and availability of the entire property.</p>
+            {!busy && rooms.length === 0 && <p>No property yet. Use Add property to create it.</p>}
+            {!busy && <div className="admin-property-grid">{rooms.map(room => (
+              <article className="admin-property-card" key={room.id}>
+                <img src={room.image} alt={room.name} />
+                <div>
+                  <span className="badge">{room.active ? 'Active' : 'Inactive'}</span>
+                  <h3>{room.name}</h3>
+                  <p>{room.category} · {room.guests} guests · {money(room.price)} / night</p>
+                  <div className="actions">
+                    <Link className="button secondary" to={`/stay/${room.id}`}>View</Link>
+                    <Link className="button" to={`/admin/rooms/${room.id}/edit`}>Edit</Link>
+                    <button className="button danger" disabled={busy} onClick={async () => {
+                      if (!confirm(`Delete ${room.name}? This cannot be undone.`)) return
+                      setBusy(true)
+                      setError('')
+                      try {
+                        await api(`/admin/rooms/${room.id}`, { method: 'DELETE' })
+                        setNotice('Property deleted.')
+                        setRevision(v => v + 1)
+                      } catch (error) { setError(error instanceof Error ? error.message : 'Could not delete property.') }
+                      finally { setBusy(false) }
+                    }}>Delete</button>
+                  </div>
+                </div>
+              </article>
+            ))}</div>}
           </>
         )}
         {!busy && tab === "Bookings" && (

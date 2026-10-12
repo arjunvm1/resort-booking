@@ -12,22 +12,22 @@ export function FeaturedStaysSection() {
             <div>
               <div className="eyebrow">REST, YOUR WAY</div>
               <h2>
-                A space for every <em>escape.</em>
+                Your private <em>escape.</em>
               </h2>
             </div>
             <Link
               className="text-link"
               to="/stay"
             >
-              Explore all stays <ArrowUpRight size={18} />
+              View the property <ArrowUpRight size={18} />
             </Link>
           </div>
           <p className="section-desc">
-            Intimate rooms, peaceful suites, and private villas. Find your own corner of calm.
+            The entire retreat is yours, with private spaces for your group to slow down together.
           </p>
-          {loading && <p role="status">Loading rooms...</p>}
+          {loading && <p role="status">Loading property...</p>}
           {error && <p className="error" role="alert">{error}</p>}
-          {!loading && !error && !rooms.length && <p>New stays are coming soon.</p>}
+          {!loading && !error && !rooms.length && <p>Property details are coming soon.</p>}
           <div className="room-grid">
             {rooms.map((r) => (
               <RoomCard

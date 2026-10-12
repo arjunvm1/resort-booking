@@ -77,17 +77,6 @@ export function Search({
           ))}
         </select>
       </label>
-      <label className="compact">
-        <span>ROOMS</span>
-        <select
-          value={stay.quantity}
-          onChange={(e) => update("quantity", e.target.value)}
-        >
-          {[1, 2, 3].map((n) => (
-            <option key={n}>{n}</option>
-          ))}
-        </select>
-      </label>
       <button className="button">
         Check availability <ArrowRight size={17} />
       </button>

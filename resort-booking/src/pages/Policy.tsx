@@ -24,7 +24,7 @@ export function Policy() {
           </p>
         ) : (
           <p>
-            All rates, taxes, availability, and reservations are sample data. No room is reserved
+            All rates, taxes, availability, and reservations are sample data. The property is not reserved
             until the resort confirms availability and verifies payment. Sample cancellation terms
             allow free cancellation up to seven days before arrival, with a one-night fee
             thereafter.
