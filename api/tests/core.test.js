@@ -32,6 +32,15 @@ test("configuration fails clearly when required settings are missing", () => {
   assert.throws(() => parseEnv({ ...env, RAZORPAY_KEY_ID: "key" }), /both/)
   assert.throws(() => parseEnv({ ...env, CLIENT_URL: "http://localhost:5173/" }), /exact origins/)
 })
+
+test('production listens on public interfaces and honors the platform port', () => {
+  const input = { ...env, HOST: undefined, NODE_ENV: 'production', PORT: '10000' }
+  const production = parseEnv(input)
+  assert.equal(production.HOST, '0.0.0.0')
+  assert.equal(production.PORT, 10000)
+  assert.equal(parseEnv({ ...input, NODE_ENV: 'development' }).HOST, '127.0.0.1')
+  assert.equal(parseEnv({ ...input, HOST: '127.0.0.1' }).HOST, '127.0.0.1')
+})
 test("stay validation rejects impossible, past, reversed and excessively long dates", () => {
   assert.equal(staySchema.safeParse(stay).success, true)
   for (const change of [

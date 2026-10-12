@@ -24,7 +24,7 @@ try {
   await connectDatabase(env.MONGODB_URI)
   const app = createApp(env)
   server = app.listen(env.PORT, env.HOST, () =>
-    console.log(`Resort API listening on port ${env.PORT}`),
+    console.log(`Resort API listening on ${env.HOST}:${env.PORT}`),
   )
   server.on("error", (error) => {
     console.error("API listener failed:", error.code)

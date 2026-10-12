@@ -7,7 +7,7 @@ dotenv.config({ path: fileURLToPath(new URL("../.env", import.meta.url)), quiet:
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(5000),
-  HOST: z.string().default("127.0.0.1"),
+  HOST: z.string().min(1).optional(),
   MONGODB_URI: z
     .string()
     .min(1)
@@ -32,6 +32,7 @@ export function parseEnv(input) {
     )
   }
   const env = result.data
+  env.HOST ??= env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1'
   env.origins = env.CLIENT_URL.split(",")
     .map((v) => v.trim())
     .filter(Boolean)
