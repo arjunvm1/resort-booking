@@ -120,6 +120,9 @@ test("HTTP security, validation and error responses work without a database", as
   })
   const base = `http://127.0.0.1:${server.address().port}`
   await t.test("health and readiness are distinct", async () => {
+    const root = await fetch(base + "/")
+    assert.equal(root.status, 200)
+    assert.equal((await root.json()).service, "resort-booking-api")
     const health = await fetch(base + "/api/health")
     assert.equal(health.status, 200)
     assert.equal((await health.json()).status, "ok")

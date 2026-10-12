@@ -34,6 +34,14 @@ export function createApp(env) {
     res.set("Cache-Control", "no-store")
     next()
   })
+  app.get("/", (req, res) =>
+    res.json({
+      status: "ok",
+      service: "resort-booking-api",
+      health: "/api/health",
+      readiness: "/api/ready",
+    }),
+  )
   app.get("/api/health", (req, res) => res.json({ status: "ok", service: "resort-booking-api" }))
   app.get("/api/ready", (req, res) => {
     const connected = mongoose.connection.readyState === 1
