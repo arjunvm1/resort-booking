@@ -32,7 +32,10 @@ export function parseEnv(input) {
     )
   }
   const env = result.data
-  env.HOST ??= env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1'
+  // Render web services must listen on public interfaces, even if HOST was
+  // copied from the local .env or NODE_ENV was not configured in the dashboard.
+  if (input.RENDER === 'true') env.HOST = '0.0.0.0'
+  else env.HOST ??= env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1'
   env.origins = env.CLIENT_URL.split(",")
     .map((v) => v.trim())
     .filter(Boolean)
